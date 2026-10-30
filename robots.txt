@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://pedro2705.github.io/restaurarfotos/sitemap.xml

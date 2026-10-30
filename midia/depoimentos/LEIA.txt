@@ -1,0 +1,1 @@
+Coloque aqui os prints de depoimentos (ex.: 1.jpg, 2.jpg) e liste-os em config.js.
