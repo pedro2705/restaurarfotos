@@ -804,3 +804,16 @@ html.ck-open .sticky{opacity:0!important;pointer-events:none!important}
 .rail--depo figure img{width:auto;height:100%;max-width:84vw;object-fit:contain}
 .car .rail--depo figure,.rail--depo figure{width:min(76vw,300px);height:auto;max-width:none}
 .rail--depo figure img{width:100%;height:auto;max-width:none}
+
+/* v7 mobile: mais compacto e tudo dentro do grid */
+.digital{padding:0 var(--pad);max-width:100%;text-wrap:balance}
+@media (max-width:899px){
+  .seq{height:330vh}
+  .sec{padding:52px 0;gap:26px}
+  .sec__head{gap:12px}
+  .memo{gap:28px}
+  .digital{font-size:11px;letter-spacing:.04em;line-height:1.6;margin-top:14px}
+  .sec > *:not(.car):not(.rail):not(.tiers):not(.cases){max-width:100%}
+}
+@media (max-width:899px){.seq{height:300vh}}
+@media (min-width:900px){.seq{height:480vh}}

@@ -163,7 +163,7 @@
      ABERTURA: restauração guiada pela rolagem
      ========================================================= */
   var seq = $('[data-seq]'), stick = $('[data-stick]');
-  var S = [0.06, 0.16, 0.26, 0.36, 0.46, 0.9];
+  var S = [0.06, 0.16, 0.26, 0.36, 0.46, 0.82];
   var E = {
     poster: $('[data-poster]'), gl: $('[data-gl]'), pct: $('[data-pct]'), pct2: $('[data-pct2]'), segs: $$('[data-seg]'),
     layersBox: $('[data-layers]'), layers: $$('[data-layer]'), hero: $('[data-hero]'), stages: $$('[data-stage]'),
@@ -223,7 +223,7 @@
     var clash = false;
     if (window.innerWidth < 900) {
       var ws = document.querySelectorAll('.btn--wa:not(.btn--sticky)');
-      for (var wi = 0; wi < ws.length && !clash; wi++) { var wr = ws[wi].getBoundingClientRect(); clash = wr.height > 0 && wr.bottom > vh - 120 && wr.top < vh; }
+      for (var wi = 0; wi < ws.length && !clash; wi++) { var wr = ws[wi].getBoundingClientRect(); clash = wr.height > 0 && wr.bottom > 60 && wr.top < vh - 40; /* outro botão de WhatsApp na tela: o flutuante sai */ }
     }
     var inSeq = seq.getBoundingClientRect().bottom > vh * 0.6;
     var show = p > 0.06 && fr > vh * 0.85 && !clash;
@@ -245,7 +245,7 @@
   var FR = [], frN = 0, frBase = '', frStarted = false, frReg = null, cvCtx = cv && cv.getContext('2d'), cvR = 1;
   function sm(a, b, x) { var u = clamp((x - a) / (b - a)); return u * u * (3 - 2 * u); }
   // linha do tempo da etapa 5 (fração da rolagem)
-  var TL = (function () { var a = S[4], b = S[5]; return { zin: [a, a + 0.085], vin: [a + 0.078, a + 0.112], s0: a + 0.11, s1: b - 0.1, zout: [b - 0.09, b - 0.005], vout: [b - 0.09, b - 0.035], gout: [b - 0.07, b] }; })();
+  var TL = (function () { var a = S[4], b = S[5]; return { zin: [a, a + 0.06], vin: [a + 0.05, a + 0.08], s0: a + 0.08, s1: b - 0.075, zout: [b - 0.07, b - 0.005], vout: [b - 0.07, b - 0.025], gout: [b - 0.055, b] }; })();
   function loadFrames() {
     frStarted = true; var d = desk(); frN = +(d ? cv.dataset.nD : cv.dataset.nM); frBase = d ? cv.dataset.framesD : cv.dataset.framesM; frReg = d ? REG.d : REG.m;
     var order = [0, frN - 1], i, active = 0, at = 0;
@@ -369,7 +369,7 @@
     if (!window.RestaurarGL) { fallback = true; seqOk = false; dirty = true; return; }
     window.RestaurarGL.mount(E.gl, {
       src: heroImg.currentSrc || heroImg.src, eye: heroCfg.olhos || [0.5, 0.58], box: heroCfg.caixa || [0.12, 0.05],
-      layout: layout, reduced: reduced, heal: fine, stages: S, view: glView, onDraw: onGLDraw, finalZoom: desk() ? 0.6 : 0.52, finalLift: desk() ? 0.03 : -0.01, gain: url('midia/olhar/luz.png'),
+      layout: layout, reduced: reduced, heal: fine, stages: S, view: glView, onDraw: onGLDraw, finalZoom: desk() ? 0.6 : 0.4, finalLift: desk() ? 0.03 : -0.06, gain: url('midia/olhar/luz.png'),
       mobile: !desk(), maxDpr: desk() ? 2 : (LOW ? 1 : 1.5), maxTex: desk() ? 1600 : (LOW ? 900 : 1100)
     }).then(function (g) { GL = g; g.setProgress(p); E.poster.style.opacity = 0; })
       .catch(function (err) { console.warn('WebGL indisponível, usando imagem estática.', err); fallback = true; seqOk = false; dirty = true; });
