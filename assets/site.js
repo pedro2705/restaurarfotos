@@ -7,7 +7,7 @@
   var reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
   var desk = function () { return innerWidth >= 900; };
-  var LOW = innerWidth < 900 && ((navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3);
+  var LOW = innerWidth < 900 && ((navigator.hardwareConcurrency || 8) <= 2 || (navigator.deviceMemory || 8) <= 2);   // iPhone não informa memória; só celulares bem fracos caem no modo leve
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
   var t = function (v) { return v == null ? '' : (typeof v === 'object' && !Array.isArray(v)) ? (v[L] != null ? v[L] : v.pt) : v; };
   var url = function (p) { return !p || /^(https?:|data:|\/)/.test(p) ? p : ROOT + p; };

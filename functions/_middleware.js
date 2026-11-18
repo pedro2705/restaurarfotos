@@ -1,5 +1,5 @@
 // Gerado pelo build. Separa os idiomas por domínio no Cloudflare Pages.
-const ES_HOST = '', BR_HOST = 'pedro2705.github.io';
+const ES_HOST = '', BR_HOST = 'restaurafotos.com.br';
 export async function onRequest(ctx) {
   const url = new URL(ctx.request.url), host = url.hostname.replace(/^www\./, ''), p = url.pathname;
   if (!ES_HOST || host.endsWith('.pages.dev') || host === 'localhost') return ctx.next();

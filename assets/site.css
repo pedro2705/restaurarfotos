@@ -817,3 +817,5 @@ html.ck-open .sticky{opacity:0!important;pointer-events:none!important}
 }
 @media (max-width:899px){.seq{height:300vh}}
 @media (min-width:900px){.seq{height:480vh}}
+@media (max-width:899px){.cases{scroll-padding-inline:var(--pad)}.digital{padding:0 var(--pad);box-sizing:border-box;width:100%}}
+.final__text{width:100%;box-sizing:border-box;min-width:0}.final__title{max-width:100%;overflow-wrap:break-word}@media (max-width:420px){.final__title{font-size:clamp(40px,11.5vw,56px)}}
