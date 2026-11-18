@@ -20,6 +20,19 @@ window.SITE = {
     es: "¡Hola! Vi tu sitio web y quiero un presupuesto para restaurar una foto."
   },
 
+  /* ---------- MÉTRICAS ----------
+     Cole só o código de cada ferramenta (vazio = desligada).
+     Google Analytics e Pixel só carregam depois que a pessoa aceita os
+     cookies e interage com a página, para não pesar a abertura.
+     Passo a passo em COMO-EDITAR.md. */
+  metricas: {
+    googleAnalytics: "",   // ex.: "G-AB12CD34EF"
+    metaPixel: "",         // ex.: "123456789012345"
+    clarity: "",           // Microsoft Clarity (mapa de calor e gravações), ex.: "abcd1234ef"
+    cloudflare: "",        // Cloudflare Web Analytics (sem cookies), token do beacon
+    vercel: false          // true se o site estiver na Vercel com Web Analytics ligado
+  },
+
   /* ---------- NÚMEROS ---------- */
   anos: 5,
   fotosRestauradas: 1000,
@@ -28,7 +41,7 @@ window.SITE = {
      olhos = centro dos olhos na foto [horizontal, vertical], de 0 a 1,
      medidos a partir do canto INFERIOR esquerdo.
      caixa = meia largura e meia altura da seleção dos olhos. */
-  hero: { foto: "img/hero/retrato.jpg", olhos: [0.496, 0.578], caixa: [0.115, 0.052] },
+  hero: { foto: "img/hero/retrato.webp", olhos: [0.496, 0.578], caixa: [0.115, 0.052] },
 
   /* ---------- MÍDIAS ----------
      Para trocar: suba o arquivo novo na pasta indicada com o MESMO nome.
@@ -36,7 +49,7 @@ window.SITE = {
      caminho aqui. Caminho vazio "" = mostra a capa provisória. */
   midias: {
     sobreMim:        "midia/sobre/eu.mp4",
-    restauracao:     "midia/servicos/restauracao.jpg",
+    restauracao:     "midia/servicos/restauracao.webp",
     memoriasVideo:   "midia/servicos/memorias-video-2.mp4",
     casamento:       "midia/servicos/casamento.mp4",
     remocaoPessoas:  "midia/servicos/remocao-pessoas.mp4",
@@ -46,8 +59,8 @@ window.SITE = {
 
   /* ---------- MEMÓRIAS EM VÍDEO (foto original + vídeo) ---------- */
   memorias: [
-    { foto: "img/comparar/menino-antes.jpg", video: "midia/servicos/memorias-video-1.mp4" },
-    { foto: "img/comparar/ruiva-antes.jpg",  video: "midia/servicos/memorias-video-2.mp4" }
+    { foto: "img/comparar/menino-antes.webp", video: "midia/servicos/memorias-video-1.mp4" },
+    { foto: "img/comparar/ruiva-antes.webp",  video: "midia/servicos/memorias-video-2.mp4" }
   ],
 
   /* ---------- SERVIÇOS ---------- */
@@ -124,17 +137,17 @@ window.SITE = {
 
   /* ---------- ANTES E DEPOIS (carrossel) ---------- */
   antesDepois: [
-    { foto: "img/antes-depois/mulher.jpg",   texto: { pt: "Retrato de mulher", en: "Portrait of a woman", es: "Retrato de mujer" } },
-    { foto: "img/antes-depois/crianca.jpg",  texto: { pt: "Retrato de criança", en: "Child portrait", es: "Retrato de niña" } },
-    { foto: "img/antes-depois/mulher2.jpg",  texto: { pt: "Retrato de jovem", en: "Portrait of a young woman", es: "Retrato de joven" } },
-    { foto: "img/antes-depois/casal.jpg",    texto: { pt: "Pai e filho", en: "Father and son", es: "Padre e hijo" } },
-    { foto: "img/antes-depois/vestidos.jpg", texto: { pt: "Duas irmãs", en: "Two sisters", es: "Dos hermanas" } },
-    { foto: "img/antes-depois/jovem.jpg",    texto: { pt: "Retrato de rapaz", en: "Portrait of a young man", es: "Retrato de joven" } },
-    { foto: "img/antes-depois/bebe.jpg",     texto: { pt: "Foto de bebê", en: "Baby photo", es: "Foto de bebé" } }
+    { foto: "img/antes-depois/mulher.webp",   texto: { pt: "Retrato de mulher", en: "Portrait of a woman", es: "Retrato de mujer" } },
+    { foto: "img/antes-depois/crianca.webp",  texto: { pt: "Retrato de criança", en: "Child portrait", es: "Retrato de niña" } },
+    { foto: "img/antes-depois/mulher2.webp",  texto: { pt: "Retrato de jovem", en: "Portrait of a young woman", es: "Retrato de joven" } },
+    { foto: "img/antes-depois/casal.webp",    texto: { pt: "Dois amigos", en: "Two friends", es: "Dos amigos" } },
+    { foto: "img/antes-depois/vestidos.webp", texto: { pt: "Duas irmãs", en: "Two sisters", es: "Dos hermanas" } },
+    { foto: "img/antes-depois/jovem.webp",    texto: { pt: "Retrato de rapaz", en: "Portrait of a young man", es: "Retrato de joven" } },
+    { foto: "img/antes-depois/bebe.webp",     texto: { pt: "Foto de bebê", en: "Baby photo", es: "Foto de bebé" } }
   ],
 
   /* ---------- DEPOIMENTOS (prints) ----------
      Suba em midia/depoimentos/ e liste aqui. Vazio = seção escondida.
      Exemplo: ["midia/depoimentos/1.jpg", "midia/depoimentos/2.jpg"] */
-  depoimentos: []
+  depoimentos: ["midia/depoimentos/5.webp", "midia/depoimentos/4.webp", "midia/depoimentos/3.webp", "midia/depoimentos/2.webp", "midia/depoimentos/1.webp"]
 };

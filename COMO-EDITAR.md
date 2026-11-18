@@ -15,7 +15,7 @@ Cada espaço do site já espera um arquivo com um nome certo. É só subir o seu
 
 | Onde aparece no site | Arquivo esperado |
 |---|---|
-| Serviço "Restauração de fotos" | `midia/servicos/restauracao.jpg` |
+| Serviço "Restauração de fotos" | `midia/servicos/restauracao.webp` |
 | Serviço "Memórias em vídeo" | `midia/servicos/memorias-video-2.mp4` |
 | Serviço "Casamento de volta à vida" | `midia/servicos/casamento.mp4` |
 | Serviço "Remoção de pessoas" | `midia/servicos/remocao-pessoas.mp4` |
@@ -33,7 +33,9 @@ Enquanto o arquivo não existe, o site mostra uma capa provisória elegante no l
 3. Arraste o arquivo com o nome exato da tabela.
 4. Clique em **Commit changes**. Se já existia um arquivo com esse nome, ele é substituído.
 
-**Capa do vídeo (opcional):** suba uma imagem `.jpg` com o mesmo nome do vídeo (ex.: `casamento.jpg` ao lado de `casamento.mp4`). Ela aparece enquanto o vídeo carrega.
+**Capa do vídeo (opcional):** suba uma imagem `.webp` com o mesmo nome do vídeo (ex.: `casamento.webp` ao lado de `casamento.mp4`). Ela aparece enquanto o vídeo carrega.
+
+**Fotos em WebP:** as imagens do site estão em `.webp`, que pesa cerca de 40% menos que `.jpg`. Para converter uma foto nova, use o [Squoosh](https://squoosh.app) (grátis, no navegador): arraste a foto, escolha **WebP**, qualidade 80, e baixe. Se preferir subir `.jpg`, também funciona, mas lembre de trocar a extensão no `config.js`.
 
 ### Quero usar outro nome ou formato
 
@@ -91,10 +93,10 @@ Com a lista vazia, a seção fica escondida.
 
 ## 6. Foto da abertura
 
-A foto que se restaura com a rolagem é `img/hero/retrato.jpg`. Se trocar, ajuste em `config.js` a posição dos olhos (`hero.olhos`), que é onde aparece a seleção da etapa "O olhar":
+A foto que se restaura com a rolagem é `img/hero/retrato.webp`. Se trocar, ajuste em `config.js` a posição dos olhos (`hero.olhos`), que é onde aparece a seleção da etapa "O olhar":
 
 ```js
-hero: { foto: "img/hero/retrato.jpg", olhos: [0.48, 0.633] }
+hero: { foto: "img/hero/retrato.webp", olhos: [0.48, 0.633] }
 ```
 
 O primeiro número vai de 0 (esquerda) a 1 (direita). O segundo vai de 0 (embaixo) a 1 (em cima).
@@ -112,4 +114,30 @@ O site tem três páginas: `index.html` (português), `en/index.html` (inglês) 
 
 ## 9. Quando comprar os domínios
 
-Hoje os endereços que o Google lê apontam para `pedro2705.github.io/restaurarfotos`. Quando você comprar o `.com.br` (português) e o `.com` (inglês em `/en` e espanhol em `/es`), esses endereços precisam ser trocados em 5 lugares: o topo das três páginas, o `sitemap.xml` e o `robots.txt`. Me peça e eu gero tudo pronto, junto com o passo a passo de DNS.
+Hoje os endereços que o Google lê apontam para `pedro2705.github.io/restaurarfotos`. Quando o domínio estiver ligado, me peça para gerar o site com o endereço novo (é uma linha só no gerador) e suba de novo. Isso atualiza o topo das três páginas, o `sitemap.xml` e o `robots.txt`.
+
+## 10. Métricas (Google Analytics, Pixel da Meta, Clarity)
+
+Os códigos ficam em `config.js`, na parte `metricas`. Campo vazio = ferramenta desligada. Quando algum código estiver preenchido, aparece um aviso de cookies; as ferramentas só carregam depois que a pessoa aceita e interage com a página.
+
+| Ferramenta | Onde pegar o código | Campo |
+|---|---|---|
+| Google Analytics 4 | analytics.google.com › Administrador › Fluxos de dados › Web › "ID da métrica" (começa com `G-`) | `googleAnalytics` |
+| Pixel da Meta | business.facebook.com › Gerenciador de Eventos › Conectar dados › Web › ID do pixel (só números) | `metaPixel` |
+| Microsoft Clarity (mapa de calor e gravações) | clarity.microsoft.com › Novo projeto › Settings › Overview › Project ID | `clarity` |
+| Cloudflare Web Analytics (sem cookies) | dash.cloudflare.com › Analytics › Web Analytics › token do script | `cloudflare` |
+| Vercel Web Analytics (sem cookies) | ative em Project › Analytics na Vercel e coloque `true` | `vercel` |
+
+**Eventos que o site já envia sozinho:**
+
+| Evento | Quando acontece |
+|---|---|
+| `clique_whatsapp` (+ `generate_lead` no Google, `Contact` na Meta) | Clique em qualquer botão de WhatsApp, com o local e o pacote |
+| `viu_precos` (`ViewContent` na Meta) | Chegou na seção de pacotes |
+| `viu_servicos`, `viu_duvidas`, `chegou_ao_fim` | Chegou em cada seção |
+| `viu_restauracao_completa` | Rolou a restauração da abertura até o fim |
+| `usou_comparador`, `trocou_caso`, `carrossel`, `testou_limpeza` | Interagiu com antes e depois, carrossel ou teste |
+| `abriu_duvida` | Abriu uma pergunta, com o texto da pergunta |
+| `clique_instagram`, `troca_idioma` | Saídas para o Instagram e troca de idioma |
+
+No Google Analytics, marque `clique_whatsapp` como **evento principal** (Administrador › Eventos) para ver quantos contatos cada origem gera.

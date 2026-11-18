@@ -21,9 +21,9 @@
   var PREC = '#ifdef GL_FRAGMENT_PRECISION_HIGH\nprecision highp float;\n#else\nprecision mediump float;\n#endif\n';
 
   var FS = PREC + [
-    'uniform sampler2D uTex;',
+    'uniform sampler2D uTex, uGain;',
     'uniform vec2 uTexel, uEye, uMouse, uLight, uHs;',
-    'uniform float uA, uB, uTime, uDust, uScratch, uTear, uColor, uSharp, uEyeRing, uMouseR;',
+    'uniform float uA, uB, uTime, uDust, uScratch, uTear, uColor, uSharp, uEyeRing, uMouseR, uFx, uSweep, uCA, uExit;',
     'varying vec2 vUv; varying float vShade;',
     'float hash(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }',
     'float noise(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);',
@@ -72,15 +72,18 @@
     '  float aDust = stageAmt(uDust, mix(F, cuv.y, 0.45)) * (1.0 - heal);',
     '  float aScr  = stageAmt(uScratch, mix(F, cuv.x, 0.45)) * (1.0 - heal);',
     '  float aCol  = stageAmt(uColor, mix(1.0 - F, 1.0 - cuv.y, 0.4)) * (1.0 - heal);',
-    '  float aSharp = uSharp * (1.0 - heal);',
+    '  vec2 qe = (cuv - uEye) * vec2(uA, 1.0); vec2 de = abs(qe) - uHs;',
+    '  float inLens = 1.0 - smoothstep(0.6, 1.25, length(qe / (uHs * vec2(1.7, 3.2))));',
+    '  float aSharp = uSharp * (1.0 - heal) * (1.0 - inLens * uEyeRing);',
     '  float dmg = (aDust + aScr + aCol + uTear) * 0.25;',
     '  float td = (vUv.x + vUv.y * 0.9) - 0.42 + (fbm(vUv * 9.0) - 0.5) * 0.14;',
     '  float thr = mix(-0.8, 0.0, uTear);',
     '  if (uTear > 0.001 && td < thr) discard;',
     '  float e = min(min(vUv.x, 1.0 - vUv.x) * size.x, min(vUv.y, 1.0 - vUv.y) * size.y);',
     '  if (e < noise(vUv * 60.0) * 0.016 * dmg) discard;',
-    '  vec3 clean = texture2D(uTex, cuv).rgb;',
-    '  vec3 soft = blur9(cuv, 1.8);',
+    '  vec2 suv = cuv; vec2 dd = (cuv - uEye) * uCA;',
+    '  vec3 clean = vec3(texture2D(uTex, suv + dd).r, texture2D(uTex, suv).g, texture2D(uTex, suv - dd).b);',
+    '  vec3 soft = blur9(suv, 1.8);',
     '  vec3 col = clean + (clean - soft) * 0.35;',
     '  col = mix(col, soft, max(aSharp * 0.85, aDust * 0.6));',
     '  float l = dot(col, vec3(0.299, 0.587, 0.114));',
@@ -97,9 +100,12 @@
     '  float cr = 1.0 - smoothstep(0.0, 0.035, crack(cuv * vec2(uA, 1.0) * 13.0));',
     '  col *= 1.0 - cr * 0.45 * aScr;',
     '  col = mix(col, vec3(0.96, 0.94, 0.9), scratches(cuv) * aScr * 0.85);',
-    '  float cy = abs(cuv.y - 0.63 - (noise(vec2(cuv.x * 6.0, 2.0)) - 0.5) * 0.03);',
-    '  col = mix(col, vec3(0.95, 0.93, 0.88), (1.0 - smoothstep(0.0, 0.004, cy)) * uTear * (1.0 - heal) * 0.8);',
-    '  col *= 1.0 - (1.0 - smoothstep(0.004, 0.012, cy)) * uTear * (1.0 - heal) * 0.25;',
+    '  float fy = cuv.y - 0.27 - (noise(vec2(cuv.x * 3.0, 2.0)) - 0.5) * 0.018 - (cuv.x - 0.5) * 0.04;',
+    '  float fAmt = uTear * (1.0 - heal);',
+    '  float brk = smoothstep(0.35, 0.6, noise(vec2(cuv.x * 90.0, 4.0)));',
+    '  col *= 1.0 - smoothstep(0.009, 0.0, -fy) * step(fy, 0.0) * 0.22 * fAmt;',
+    '  col += vec3(0.10, 0.09, 0.07) * smoothstep(0.007, 0.0, fy) * step(0.0, fy) * fAmt;',
+    '  col = mix(col, vec3(0.93, 0.90, 0.84), (1.0 - smoothstep(0.0, 0.0016, abs(fy))) * brk * fAmt * 0.9);',
     '  float rebuilt = step(td, 0.0) * step(thr, td);',
     '  col = mix(col, sep * 0.95, rebuilt * uTear * 0.6);',
     '  vec3 paper = mix(vec3(0.93, 0.91, 0.86), vec3(0.80, 0.70, 0.52), aCol * 0.8 + stain * aDust * 0.3);',
@@ -114,16 +120,15 @@
     '  col *= 1.0 - vShade * 0.5;',
     '  col += (hash(vUv * 900.0 + fract(uTime) * 13.0) - 0.5) * (0.025 + 0.07 * dmg);',
     '  vec2 q = (cuv - uEye) * vec2(uA, 1.0);',
-    '  vec2 hs = uHs;',
-    '  vec2 dq = abs(q) - hs;',
-    '  float outside = max(dq.x, dq.y);',
-    '  float onEdge = 1.0 - smoothstep(0.0015, 0.003, abs(outside));',
-    '  float dash = step(0.5, fract((q.x + q.y) * 55.0 - uTime * 1.5));',
-    '  vec2 cq = abs(abs(q) - hs);',
-    '  float handle = step(max(cq.x, cq.y), 0.011);',
-    '  col *= 1.0 - 0.5 * uEyeRing * smoothstep(0.0, 0.04, outside) * inside;',
-    '  col = mix(col, mix(vec3(0.07), vec3(0.97), dash), onEdge * uEyeRing * inside);',
-    '  col = mix(col, vec3(0.97), handle * uEyeRing * inside);',
+    '  float ee = length(q / (uHs * vec2(1.7, 3.2)));',
+    '  float spot = 1.0 - smoothstep(0.5, 1.4, ee);',
+    '  float sw = (q.x * 0.55 + q.y) - uSweep;',
+    '  float band = exp(-sw * sw / 0.0008);',
+    '  col += vec3(1.0, 0.84, 0.66) * band * 0.45 * uFx * inside;',
+    '  float flare = exp(-dot(q * vec2(0.9, 3.0), q * vec2(0.9, 3.0)) / 0.002) * band;',
+    '  col += vec3(1.0, 0.9, 0.78) * flare * 0.5 * uFx;',
+    '  vec3 gn = texture2D(uGain, vec2(cuv.x, cuv.y)).rgb * 2.0;',
+    '  col = mix(col, col * gn, uExit);',
     '  float ring = smoothstep(uMouseR - 0.005, uMouseR - 0.002, md) - smoothstep(uMouseR, uMouseR + 0.003, md);',
     '  col = mix(col, vec3(0.97), ring * 0.7 * step(0.001, uMouseR));',
     '  gl_FragColor = vec4(col, 1.0);',
@@ -220,6 +225,12 @@
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
+      var gtex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, gtex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array([128, 128, 128]));
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      if (opts.gain) loadImg(opts.gain).then(function (gi) { gl.bindTexture(gl.TEXTURE_2D, gtex); gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, gi); }).catch(function () {});
       var A = w / h, B = 0.05, PW = A + 2 * B, PH = 1 + 2 * B, SEG = 72;
       // malha do plano
       var pos = [], uvs = [], idx = [];
@@ -241,7 +252,7 @@
 
       var eye = opts.eye || [0.5, 0.6], box = opts.box || [0.19, 0.075], dpr = 1, W = 1, H = 1, fov = 32 * Math.PI / 180, camZ = 6;
       var proj = ident(), view = trans(0, 0, -camZ), model = ident();
-      var st = { target: 0, p: 0, px: 0, py: 0, tx: 0, ty: 0, hover: 0, hoverT: 0, mouse: [-9, -9], rot: [0, 0, 0], pos: [0, 0], s: 1 };
+      var st = { rz: 0, target: 0, p: 0, px: 0, py: 0, tx: 0, ty: 0, hover: 0, hoverT: 0, mouse: [-9, -9], rot: [0, 0, 0], pos: [0, 0], s: 1, ctr: 0 };
       var visible = true, raf = 0, t0 = performance.now(), tReady = t0;
 
       function resize() {
@@ -251,13 +262,24 @@
         gl.viewport(0, 0, canvas.width, canvas.height);
         proj = persp(fov, W / H, 0.1, 50);
       }
-      function place(zoom) {
+      var KK = 1;
+      function eoff(s, r) { var x = (eye[0] - 0.5) * A * s, y = (eye[1] - 0.5) * s, c = Math.cos(r), n = Math.sin(r); return [x * c - y * n, x * n + y * c]; }
+      function place(zoom, ov) {
         var L = opts.layout(W, H, A);
-        var k = (2 * Math.tan(fov / 2) * camZ) / H;
+        var k = KK = (2 * Math.tan(fov / 2) * camZ) / H;
         var s = (L.h * k) / PH;
         var cx = (L.cx - W / 2) * k, cy = -(L.cy - H / 2) * k;
         var ex = (eye[0] - 0.5) * A * s, ey = (eye[1] - 0.5) * s;
-        st.s = s * zoom; st.pos = [cx + ex * (1 - zoom), cy + ey * (1 - zoom)];
+        var sn = s * zoom, pn = [cx + ex * (1 - zoom), cy + ey * (1 - zoom)], r = 0;
+        if (ov && ov.amt > 0) {
+          // mistura em direção ao enquadramento pedido (o mesmo do vídeo), guiando pelos olhos
+          var t = ov.amt, so = ov.h * k, po = [(ov.cx - W / 2) * k, -(ov.cy - H / 2) * k];
+          var en = eoff(sn, 0), eo = eoff(so, ov.rot || 0);
+          var E0 = [pn[0] + en[0] + (po[0] + eo[0] - pn[0] - en[0]) * t, pn[1] + en[1] + (po[1] + eo[1] - pn[1] - en[1]) * t];
+          sn = Math.exp(Math.log(sn) + (Math.log(so) - Math.log(sn)) * t); r = (ov.rot || 0) * t;
+          var ee = eoff(sn, r); pn = [E0[0] - ee[0], E0[1] - ee[1]];
+        }
+        st.s = sn; st.pos = pn; st.rz = r;
       }
       resize();
 
@@ -276,18 +298,26 @@
         st.p += (st.target - st.p) * 0.14;
         var p = st.p;
         var uDust = 1 - ss(S[0], S[1], p), uScr = 1 - ss(S[1], S[2], p), uTear = 1 - ss(S[2], S[3], p),
-            uCol = 1 - ss(S[3], S[4], p), uSharp = 1 - ss(S[4], S[5], p);
+            uCol = 1 - ss(S[3], S[4], p), uSharp = 1 - ss(S[4] - 0.02, S[4] + 0.04, p);
         var ring = ss(S[4] - 0.02, S[4] + 0.04, p) * (1 - ss(S[5] - 0.02, S[5] + 0.03, p));
-        var warp = 1 - ss(0.06, S[5], p);
+        var warp = 1 - ss(0.06, S[4], p), par = 1 - ss(S[4] - 0.05, S[4], p);
         var intro = opts.reduced ? 1 : ss(0, 1, (now - tReady - 300) / 1600);
-        var zI = opts.mobile ? 0.12 : 0.5, zE = opts.mobile ? 0.22 : 0.38;
-        var zoom = 1 + zI * intro * (1 - ss(0, S[0], p)) + zE * ss(S[4] - 0.01, S[4] + 0.06, p) * (1 - ss(S[5] - 0.03, S[5] + 0.04, p));
-        place(zoom);
+        var zI = opts.mobile ? 0.12 : 0.5;
+        // luz que varre os olhos antes do vídeo entrar
+        var fx = opts.reduced ? 0 : ss(S[4] - 0.005, S[4] + 0.02, p) * (1 - ss(S[4] + 0.045, S[4] + 0.065, p));
+        var sweep = -0.55 + 1.1 * ss(S[4] + 0.0, S[4] + 0.06, p);
+        var ca = 0.012 * fx * (1 - ss(S[4] + 0.03, S[4] + 0.055, p));
+        var zoom = 1 + zI * intro * (1 - ss(0, S[0], p));
+        var ov = opts.view ? opts.view(p, W, H) : null;
+        place(zoom, ov);
+        // final: a foto recua para caber no porta-retrato sobre o móvel
+        var fz = opts.finalZoom ? ss(S[5] - 0.005, S[5] + 0.07, p) : 0;
+        if (fz > 0) { var zf = 1 + (opts.finalZoom - 1) * fz; st.s *= zf; st.pos[1] += (opts.finalLift || 0) * KK * H * fz; }
         st.px += (st.tx - st.px) * 0.06; st.py += (st.ty - st.py) * 0.06;
         var sw = opts.reduced ? 0 : 1;
-        st.rot = [-0.32 * warp + st.py * 0.12 + Math.sin(t * 0.5) * 0.03 * warp * sw,
-                  0.22 * warp + st.px * 0.16 + Math.sin(t * 0.37) * 0.05 * warp * sw,
-                  -0.05 * warp];
+        st.rot = [-0.32 * warp + st.py * 0.12 * par + Math.sin(t * 0.5) * 0.03 * warp * sw,
+                  0.22 * warp + st.px * 0.16 * par + Math.sin(t * 0.37) * 0.05 * warp * sw,
+                  -0.05 * warp + st.rz];
         st.hover += (st.hoverT - st.hover) * 0.15;
         var mouseR = st.hover > 0.01 ? st.hover * 0.14 : 0;
 
@@ -300,12 +330,13 @@
         gl.useProgram(P.p); var U = P.u;
         gl.uniformMatrix4fv(U.uProj, false, proj); gl.uniformMatrix4fv(U.uMV, false, mv);
         gl.uniform1f(U.uWarp, warp); gl.uniform1f(U.uTime, t);
+        gl.uniform1i(U.uGain, 1); gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, gtex);
         gl.uniform1i(U.uTex, 0); gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.uniform2f(U.uTexel, 1 / w, 1 / h); gl.uniform2f(U.uEye, eye[0], eye[1]); gl.uniform2f(U.uHs, box[0], box[1]);
         gl.uniform2f(U.uMouse, st.mouse[0], st.mouse[1]); gl.uniform2f(U.uLight, -0.8 + st.px * 0.6, 0.5 - st.py * 0.4);
         gl.uniform1f(U.uA, A); gl.uniform1f(U.uB, B);
         gl.uniform1f(U.uDust, uDust); gl.uniform1f(U.uScratch, uScr); gl.uniform1f(U.uTear, uTear);
-        gl.uniform1f(U.uColor, uCol); gl.uniform1f(U.uSharp, uSharp); gl.uniform1f(U.uEyeRing, ring); gl.uniform1f(U.uMouseR, mouseR);
+        gl.uniform1f(U.uColor, uCol); gl.uniform1f(U.uSharp, uSharp); gl.uniform1f(U.uEyeRing, ring); gl.uniform1f(U.uFx, fx); gl.uniform1f(U.uSweep, sweep); gl.uniform1f(U.uCA, ca); gl.uniform1f(U.uExit, ov && ov.gain ? ov.gain : 0); gl.uniform1f(U.uMouseR, mouseR);
         var aP = gl.getAttribLocation(P.p, 'position'), aU = gl.getAttribLocation(P.p, 'uv');
         gl.bindBuffer(gl.ARRAY_BUFFER, bPos); gl.enableVertexAttribArray(aP); gl.vertexAttribPointer(aP, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, bUv); gl.enableVertexAttribArray(aU); gl.vertexAttribPointer(aU, 2, gl.FLOAT, false, 0, 0);
@@ -316,12 +347,13 @@
         gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
         gl.useProgram(PD.p); var V = PD.u;
         gl.uniformMatrix4fv(V.uProj, false, proj); gl.uniformMatrix4fv(V.uMV, false, view);
-        gl.uniform1f(V.uTime, opts.reduced ? 0 : t); gl.uniform1f(V.uPR, dpr); gl.uniform1f(V.uAlpha, 0.2 + 0.8 * uDust);
+        gl.uniform1f(V.uTime, opts.reduced ? 0 : t); gl.uniform1f(V.uPR, dpr); gl.uniform1f(V.uAlpha, Math.min(1, 0.2 + 0.8 * uDust + 0.7 * fx));
         var dP = gl.getAttribLocation(PD.p, 'position'), dR = gl.getAttribLocation(PD.p, 'aRnd');
         gl.bindBuffer(gl.ARRAY_BUFFER, bDP); gl.enableVertexAttribArray(dP); gl.vertexAttribPointer(dP, 3, gl.FLOAT, false, 0, 0);
         gl.bindBuffer(gl.ARRAY_BUFFER, bDR); gl.enableVertexAttribArray(dR); gl.vertexAttribPointer(dR, 1, gl.FLOAT, false, 0, 0);
         gl.drawArrays(gl.POINTS, 0, N);
         gl.disableVertexAttribArray(dR);
+        if (opts.onDraw) opts.onDraw(p, { cx: W / 2 + st.pos[0] / KK, cy: H / 2 - st.pos[1] / KK, h: st.s / KK, rot: st.rot[2], W: W, H: H, warp: warp });
       }
       raf = requestAnimationFrame(frame);
       requestAnimationFrame(function () { canvas.style.opacity = '1'; });
@@ -331,7 +363,7 @@
         setPointer: function (clientX, clientY, active) {
           var r = host.getBoundingClientRect();
           st.tx = ((clientX - r.left) / r.width) * 2 - 1; st.ty = ((clientY - r.top) / r.height) * 2 - 1;
-          if (!opts.heal || !active) { st.hoverT = 0; return false; }
+          if (!opts.heal || !active || st.p > STAGES[4] - 0.03) { st.hoverT = 0; return false; }
           // raio da câmera até o plano da foto (no espaço do modelo)
           var th = Math.tan(fov / 2), asp = r.width / r.height;
           var d = [st.tx * th * asp, -st.ty * th, -1], o = [0 - st.pos[0], 0 - st.pos[1], camZ];
