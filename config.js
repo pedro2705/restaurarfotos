@@ -26,9 +26,9 @@ window.SITE = {
      cookies e interage com a página, para não pesar a abertura.
      Passo a passo em COMO-EDITAR.md. */
   metricas: {
-    googleAnalytics: "",   // ex.: "G-AB12CD34EF"
-    metaPixel: "",         // ex.: "123456789012345"
-    clarity: "",           // Microsoft Clarity (mapa de calor e gravações), ex.: "abcd1234ef"
+    googleAnalytics: "G-QNYBNDS9XQ",   // ex.: "G-AB12CD34EF"
+    metaPixel: "207147579393771",         // ex.: "123456789012345"
+    clarity: "zfw3qida1t",           // Microsoft Clarity (mapa de calor e gravações), ex.: "abcd1234ef"
     cloudflare: "",        // Cloudflare Web Analytics (sem cookies), token do beacon
     vercel: false          // true se o site estiver na Vercel com Web Analytics ligado
   },
