@@ -819,3 +819,8 @@ html.ck-open .sticky{opacity:0!important;pointer-events:none!important}
 @media (min-width:900px){.seq{height:480vh}}
 @media (max-width:899px){.cases{scroll-padding-inline:var(--pad)}.digital{padding:0 var(--pad);box-sizing:border-box;width:100%}}
 .final__text{width:100%;box-sizing:border-box;min-width:0}.final__title{max-width:100%;overflow-wrap:break-word}@media (max-width:420px){.final__title{font-size:clamp(40px,11.5vw,56px)}}
+/* aviso de cookies: abaixo do cursor personalizado e longe do botão da abertura */
+.ck{z-index:55}
+@media (min-width:900px){.ck{left:auto;right:max(24px,env(safe-area-inset-right))}}
+html.cc-on .privacy,html.cc-on .privacy *{cursor:auto!important}
+html.cc-on .privacy button{cursor:pointer!important}
